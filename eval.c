@@ -19,6 +19,9 @@ void appendPrimitive(Symbol symbol, Atom* (*pri)(Atom* argl, Atom* env)) {
     primitiveProcSymbol[primitiveCount] = symbol;
     primitiveProc[primitiveCount] = pri;
     primitiveCount++;
+    
+    Atom* tmp = createSymbol(symbol);
+    env0 = cons(cons(tmp, tmp), env0);
   }
 }
 

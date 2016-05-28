@@ -90,13 +90,13 @@ Atom* parseSequence() {
     return nil;
   }
   else {
-    return cons(parse(), parseSequence());
+    Atom* result = parse();
+    Atom* subsequence = parseSequence();
+    return cons(result, subsequence);
   }
 }
 
 Atom* parse() {
-  nextToken();
-  
   if (*token == '(') {
     return parseSequence();
   }
@@ -118,7 +118,8 @@ Atom* parseFromFile(FILE* file) {
   inputFile = file;
   currentPos = 0;
   bufferSize = 0;
+  nextToken();
   Atom* result = parse();
-  fprintf(stderr, "<"); // indicate that parsing is finished.
+  fprintf(stderr, "< "); // indicate that parsing is finished.
   return result;
 }
