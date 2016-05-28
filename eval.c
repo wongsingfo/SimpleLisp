@@ -1,17 +1,38 @@
 #include "eval.h"
 #include "exception.h"
-#include "primitive.h"
 
 Atom* env0;
 Atom* symbolLambda;
 
-void installEvalPackage() {
-  env0 = nil;
-  symbolLambda = createReservedSymbol("lambda_tag");
+#define numberOfPrimitiveProc 10
+
+int primitiveCount;
+Symbol primitiveProcSymbol[numberOfPrimitiveProc];
+Atom* (*primitiveProc[numberOfPrimitiveProc])(Atom* argl, Atom* env);
+
+void appendPrimitive(Symbol symbol, Atom* (*pri)(Atom* argl, Atom* env)) {
+  if (primitiveCount >= numberOfPrimitiveProc) {
+    exception("??", "primitiveCount >= numberOfPrimitiveProc");
+    return;
+  }
+  else {
+    primitiveProcSymbol[primitiveCount] = symbol;
+    primitiveProc[primitiveCount] = pri;
+    primitiveCount++;
+  }
 }
 
 int pair_(Atom* exp) {
   if (exp->type == atomPair) {
+    return 1;
+  }
+  else {
+    return 0;
+  }
+}
+
+int number_(Atom* exp) {
+  if (exp->type == atomNumber) {
     return 1;
   }
   else {
@@ -90,6 +111,7 @@ Atom* getArgumentsFromExp(Atom* exp) {
 Atom* lookUp(Atom* symbol, Atom* env) {
   if (null_(env)) {
     exception("look up", "can not find symbol");
+    return nil;
   }
   else {
     Atom* pair = car(env);
@@ -112,13 +134,15 @@ Atom* eval(Atom* exp, Atom* env) {
     exception("eval", "evaluate an empty expression");
     return nil;
   }
+  else if (symbol_(exp)) {
+    return lookUp(exp, env);
+  }
+  else if (number_(exp)) {
+    return exp;
+  }
   else {
-    if (symbol_(exp)) {
-      return lookUp(exp, env);
-    }
-    else {
-      return exp;
-    }
+    exception("??eval", "unknown operation");
+    return nil;
   }
 }
 
@@ -164,6 +188,16 @@ Atom* extendEnvironment(Atom* env, Atom* name, Atom* argl) {
   }
 }
 
+Atom* primitiveProcApply(Symbol proc, Atom* argl, Atom* env) {
+  for (int i = 0; i < primitiveCount; i++) {
+    if (symboleq_(proc, primitiveProcSymbol[i])) {
+      return (*primitiveProc[i])(argl, env);
+    }
+  }
+  exception("primitive apply", "proc is not primitive or compounded");
+  return nil;
+}
+
 Atom* apply(Atom* proc, Atom* argl, Atom* applyEnv) {
   if (lambda_(proc)) {
     Atom* newEnv = 
@@ -175,14 +209,7 @@ Atom* apply(Atom* proc, Atom* argl, Atom* applyEnv) {
     return eval(getBodyFromProc(proc), newEnv);
   }
   else if (symbol_(proc)) {
-    Atom* (*pri)(Atom* argl, Atom* env);
-    if (primitive_(proc->data.symbol, pri)) {
-      return (*pri)(argl, applyEnv);
-    }
-    else {
-      exception("apply", "proc is not compounded or primitive");
-      return nil;
-    }
+    return primitiveProcApply(proc->data.symbol, argl, applyEnv);
   }
   else {
     exception("apply", "number / string / .. etc can not be applied");
@@ -190,3 +217,33 @@ Atom* apply(Atom* proc, Atom* argl, Atom* applyEnv) {
   }
 }
 
+Atom* priAdd(Atom* argl, Atom* env) {
+  Atom* value = evalSequence(argl, env);
+  
+  if (null_(value)) {
+    exception("primitive + (add)", "no arguments");
+    return nil;
+  }
+  else {
+    for (Atom* i = value; !null_(i); i = cdr(i)) {
+      if (! number_(car(i))) {
+        exception("primitive + (add)", "not a number");
+        return nil;
+      }
+    }
+  
+    Number result = car(value)->data.number;
+    for (Atom* i = cdr(value); !null_(i); i = cdr(i)) {
+      result = numberadd(result, car(i)->data.number);
+    }
+    return createNumber(result);
+  }
+}
+
+void installEvalPackage() {
+  env0 = nil;
+  symbolLambda = createReservedSymbol("lambda_tag");
+  
+  primitiveCount = 0;
+  appendPrimitive(createSymbolFromStr("+"), priAdd);
+}
