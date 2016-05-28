@@ -1,3 +1,7 @@
+```
+gcc control.c symbol.c number.c exception.c eval.c parser.c atom.c -g
+```
+
 // these packages must be installed in order!
 
 -- parser

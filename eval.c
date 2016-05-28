@@ -242,6 +242,18 @@ Atom* priAdd(Atom* argl, Atom* env) {
   }
 }
 
+void printAtom(FILE* file, Atom* atom) {
+  if (number_(atom)) {
+    printNumber(file, atom->data.number);
+  }
+  else if (symbol_(atom)) {
+    printSymbol(file, atom->data.symbol);
+  }
+  else {
+    fprintf(file, "does not surpport now");
+  }
+}
+
 void installEvalPackage() {
   env0 = nil;
   symbolLambda = createReservedSymbol("lambda_tag");

@@ -118,5 +118,7 @@ Atom* parseFromFile(FILE* file) {
   inputFile = file;
   currentPos = 0;
   bufferSize = 0;
-  return parse();
+  Atom* result = parse();
+  fprintf(stderr, "<"); // indicate that parsing is finished.
+  return result;
 }

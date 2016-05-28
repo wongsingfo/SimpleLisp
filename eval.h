@@ -9,6 +9,8 @@ Atom* apply(Atom* proc, Atom* argl, Atom* applyEnv);
 
 extern Atom* env0;
 
+void printAtom(FILE* file, Atom* atom);
+
 void installEvalPackage();
 
 #endif
