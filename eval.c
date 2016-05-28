@@ -189,7 +189,8 @@ Atom* extendEnvironment(Atom* env, Atom* name, Atom* argl) {
 }
 
 Atom* primitiveProcApply(Symbol proc, Atom* argl, Atom* env) {
-  for (int i = 0; i < primitiveCount; i++) {
+  int i;
+  for (i = 0; i < primitiveCount; i++) {
     if (symboleq_(proc, primitiveProcSymbol[i])) {
       return (*primitiveProc[i])(argl, env);
     }
@@ -225,7 +226,8 @@ Atom* priAdd(Atom* argl, Atom* env) {
     return nil;
   }
   else {
-    for (Atom* i = value; !null_(i); i = cdr(i)) {
+    Atom* i;
+    for (i = value; !null_(i); i = cdr(i)) {
       if (! number_(car(i))) {
         exception("primitive + (add)", "not a number");
         return nil;
@@ -233,7 +235,7 @@ Atom* priAdd(Atom* argl, Atom* env) {
     }
   
     Number result = car(value)->data.number;
-    for (Atom* i = cdr(value); !null_(i); i = cdr(i)) {
+    for (i = cdr(value); !null_(i); i = cdr(i)) {
       result = numberadd(result, car(i)->data.number);
     }
     return createNumber(result);

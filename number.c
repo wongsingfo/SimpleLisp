@@ -23,6 +23,10 @@ Number numberadd(Number x, Number y) {
   return x + y;
 }
 
+void printNumber(FILE* file, Number x) {
+  fprintf(file, "%lld\n", x);
+}
+
 void installNumberPackage() {
   return;
 }

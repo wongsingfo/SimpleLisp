@@ -30,7 +30,9 @@ Symbol storeSymbol(char* symbol) {
   void* store = malloc(sizeof(char) * len);
   memcpy(store, symbol, len);
 
-  if (vectorFull()) extendVector();
+  if (vectorFull()) {
+    extendVector();
+  }
   
   vec[vecCount] = symbol;
   vecCount++;
@@ -38,7 +40,8 @@ Symbol storeSymbol(char* symbol) {
 }
 
 Symbol createSymbolFromStr(char* str) {
-  for (int i = 0; i < vecCount; i++) {
+  int i;
+  for (i = 0; i < vecCount; i++) {
     if (strcmp(str, vec[i]) == 0) {
       return i;
     }
@@ -57,6 +60,10 @@ int symboleq_(Symbol x, Symbol y) {
   else {
     return 0;
   }
+}
+
+void printSymbol(FILE* file, Symbol x) {
+  fprintf(file, "%s", vec[x]);
 }
 
 void installSymbolPackage() {
