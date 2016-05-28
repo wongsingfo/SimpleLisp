@@ -1,5 +1,6 @@
 // these packages must be installed in order!
 
+-- parser
 -- eval
   -- atom
     -- symbol
