@@ -5,7 +5,7 @@
 
 typedef long long Number;
 
-Number createNumber(char* str);
+Number createNumberFromStr(char* str);
 void deleteNumber(Number number);
 
 int numbereq_(Number x, Number y);

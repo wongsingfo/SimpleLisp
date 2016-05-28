@@ -3,7 +3,7 @@
 
 typedef int Symbol;
 
-Symbol createSymbol(char* str);
+Symbol createSymbolFromStr(char* str);
 void deleteSymbol(Symbol symbol);
 
 int symboleq_(Symbol x, Symbol y);

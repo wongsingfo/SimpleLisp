@@ -38,7 +38,22 @@ Atom* cons(Atom* x, Atom* y) {
 Atom* createReservedSymbol(char* symbol) {
   Atom* result = (Atom*) malloc(sizeof(Atom));
   result->type = atomSymbol;
-  result->data.symbol = createSymbol(symbol);
+  result->data.symbol = createSymbolFromStr(symbol);
+  return result;
+}
+
+Atom* createNumber(Number number) {
+  Atom* result = (Atom*) malloc(sizeof(Atom));
+  result->type = atomNumber;
+  result->data.number = number;
+  return result;
+}
+
+Atom* createSymbol(Symbol symbol) {
+  Atom* result = (Atom*) malloc(sizeof(Atom));
+  result->type = atomSymbol;
+  result->data.symbol = symbol;
+  return result;
 }
 
 void installAtomPackage() {

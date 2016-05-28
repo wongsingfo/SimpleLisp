@@ -31,6 +31,9 @@ extern Atom* tAtom;
 extern Atom* fAtom;
 Atom* createReservedSymbol(char* symbol);
 
+Atom* createSymbol(Symbol symbol);
+Atom* createNumber(Number number);
+
 void installAtomPackage();
 
 #endif

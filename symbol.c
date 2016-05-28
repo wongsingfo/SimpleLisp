@@ -37,7 +37,7 @@ Symbol storeSymbol(char* symbol) {
   return vecCount - 1;
 }
 
-Symbol createSymbol(char* str) {
+Symbol createSymbolFromStr(char* str) {
   for (int i = 0; i < vecCount; i++) {
     if (strcmp(str, vec[i]) == 0) {
       return i;

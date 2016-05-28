@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-Number createNumber(char* str) {
+Number createNumberFromStr(char* str) {
   return atoll(str);
 }
 
