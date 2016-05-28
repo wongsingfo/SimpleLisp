@@ -74,6 +74,13 @@ void nextToken() {
 }
 
 int isNumber(char* s) {
+  if (*s == '-') {
+    *s++;
+    if (*s == '\0') {
+      return 0;
+    }
+  }
+  
   for (; *s; s++) {
     if (*s > '9' || *s < '0') {
       return 0;
