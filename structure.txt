@@ -1,0 +1,8 @@
+// these packages must be installed in order!
+
+-- eval
+  -- primitive
+    -- atom
+      -- symbol
+      -- number
+

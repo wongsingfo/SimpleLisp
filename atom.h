@@ -29,6 +29,7 @@ Atom* cons(Atom* x, Atom* y);
 extern Atom* nil; 
 extern Atom* tAtom;
 extern Atom* fAtom;
+Atom* createReservedSymbol(char* symbol);
 
 void installAtomPackage();
 
