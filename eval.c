@@ -8,9 +8,9 @@ Atom* symbolLambda;
 
 int primitiveCount;
 Symbol primitiveProcSymbol[numberOfPrimitiveProc];
-Atom* (*primitiveProc[numberOfPrimitiveProc])(Atom* argl, Atom* env);
+Atom* (*primitiveProc[numberOfPrimitiveProc])(Atom* argl, Atom** env);
 
-void appendPrimitive(Symbol symbol, Atom* (*pri)(Atom* argl, Atom* env)) {
+void appendPrimitive(Symbol symbol, Atom* (*pri)(Atom* argl, Atom** env)) {
   if (primitiveCount >= numberOfPrimitiveProc) {
     exception("??", "primitiveCount >= numberOfPrimitiveProc");
     return;
@@ -98,7 +98,7 @@ Atom* evalSequence(Atom* exp, Atom* env) {
     return nil;
   }
   else {
-    Atom* result = eval(car(exp), env);
+    Atom* result = eval(car(exp), &env);
     return cons(result, evalSequence(cdr(exp), env));
   }
 }
@@ -127,7 +127,7 @@ Atom* lookUp(Atom* symbol, Atom* env) {
   }
 }
 
-Atom* eval(Atom* exp, Atom* env) {
+Atom* eval(Atom* exp, Atom** env) {
   if (pair_(exp)) {
     Atom* proc = eval(getProcedureFromExp(exp), env);
     Atom* argl = getArgumentsFromExp(exp);
@@ -138,7 +138,7 @@ Atom* eval(Atom* exp, Atom* env) {
     return nil;
   }
   else if (symbol_(exp)) {
-    return lookUp(exp, env);
+    return lookUp(exp, *env);
   }
   else if (number_(exp)) {
     return exp;
@@ -191,7 +191,7 @@ Atom* extendEnvironment(Atom* env, Atom* name, Atom* argl) {
   }
 }
 
-Atom* primitiveProcApply(Symbol proc, Atom* argl, Atom* env) {
+Atom* primitiveProcApply(Symbol proc, Atom* argl, Atom** env) {
   int i;
   for (i = 0; i < primitiveCount; i++) {
     if (symboleq_(proc, primitiveProcSymbol[i])) {
@@ -202,15 +202,15 @@ Atom* primitiveProcApply(Symbol proc, Atom* argl, Atom* env) {
   return nil;
 }
 
-Atom* apply(Atom* proc, Atom* argl, Atom* applyEnv) {
+Atom* apply(Atom* proc, Atom* argl, Atom** applyEnv) {
   if (lambda_(proc)) {
     Atom* newEnv = 
       extendEnvironment(
         getEnvironmentFromProc(proc),
         getArgumentsFromProc(proc),
-        evalSequence(argl, applyEnv)
+        evalSequence(argl, *applyEnv)
       );
-    return eval(getBodyFromProc(proc), newEnv);
+    return eval(getBodyFromProc(proc), &newEnv);
   }
   else if (symbol_(proc)) {
     return primitiveProcApply(proc->data.symbol, argl, applyEnv);
@@ -221,8 +221,30 @@ Atom* apply(Atom* proc, Atom* argl, Atom* applyEnv) {
   }
 }
 
-Atom* priAdd(Atom* argl, Atom* env) {
-  Atom* value = evalSequence(argl, env);
+void checkLength(Atom* list, int len) {
+  if (null_(list)) {
+    if (len != 0) {
+      exception("check list length", "list too short");
+    }
+    else {
+      return;
+    }
+  }
+  else if (len == 0) {
+    if (! null_(list)) {
+      exception("check list length", "list too long");
+    }
+    else {
+      return;
+    }
+  }
+  else {
+    checkLength(cdr(list), len - 1);
+  }
+}
+
+Atom* priAdd(Atom* argl, Atom** env) {
+  Atom* value = evalSequence(argl, *env);
   
   if (null_(value)) {
     exception("primitive + (add)", "no arguments");
@@ -245,6 +267,21 @@ Atom* priAdd(Atom* argl, Atom* env) {
   }
 }
 
+Atom* priDefine(Atom* argl, Atom** env) {
+  checkLength(argl, 2);
+  Atom* value = eval(car(cdr(argl)), env);
+  
+  if (symbol_(car(argl))) {
+    Atom* def = cons(car(argl), value);
+    *env = cons(def, *env);
+    return nil;
+  }
+  else {
+    exception("primitive define", "symbol expected");
+    return nil;
+  }
+}
+
 void printAtom(FILE* file, Atom* atom) {
   if (number_(atom)) {
     printNumber(file, atom->data.number);
@@ -253,7 +290,7 @@ void printAtom(FILE* file, Atom* atom) {
     printSymbol(file, atom->data.symbol);
   }
   else {
-    fprintf(file, "does not surpport now");
+    fprintf(file, "not support now");
   }
 }
 
@@ -263,4 +300,5 @@ void installEvalPackage() {
   
   primitiveCount = 0;
   appendPrimitive(createSymbolFromStr("+"), priAdd);
+  appendPrimitive(createSymbolFromStr("define"), priDefine);
 }

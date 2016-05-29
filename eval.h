@@ -3,9 +3,9 @@
 
 #include "atom.h"
 
-Atom* eval(Atom* exp, Atom* env);
+Atom* eval(Atom* exp, Atom** env);
 // '(lambda args env . body)
-Atom* apply(Atom* proc, Atom* argl, Atom* applyEnv);
+Atom* apply(Atom* proc, Atom* argl, Atom** applyEnv);
 
 extern Atom* env0;
 
