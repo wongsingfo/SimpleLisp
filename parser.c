@@ -75,7 +75,7 @@ void nextToken() {
 
 int isNumber(char* s) {
   if (*s == '-') {
-    *s++;
+    s++;
     if (*s == '\0') {
       return 0;
     }
