@@ -21,6 +21,7 @@ int vectorFull() {
 void extendVector() {
   void* newVec = malloc(sizeof(char*) * vecSize * 2);
   memcpy(newVec, vec, sizeof(char*) * vecSize);
+  vecSize *= 2;
   free(vec);
   vec = newVec;
 }
@@ -28,13 +29,13 @@ void extendVector() {
 Symbol storeSymbol(char* symbol) {
   int len = strlen(symbol) + 1;
   void* store = malloc(sizeof(char) * len);
-  memcpy(store, symbol, len);
+  memcpy(store, symbol, sizeof(char) * len);
 
   if (vectorFull()) {
     extendVector();
   }
   
-  vec[vecCount] = symbol;
+  vec[vecCount] = store;
   vecCount++;
   return vecCount - 1;
 }

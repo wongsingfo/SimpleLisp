@@ -282,6 +282,14 @@ Atom* priDefine(Atom* argl, Atom** env) {
   }
 }
 
+Atom* priLambda(Atom* argl, Atom** env) {
+  checkLength(argl, 2);
+  Atom* result = cons(*env, car(cdr(argl)));
+  result = cons(car(argl), result);
+  result = cons(symbolLambda, result);
+  return result;
+}
+
 void printAtom(FILE* file, Atom* atom) {
   if (number_(atom)) {
     printNumber(file, atom->data.number);
@@ -301,4 +309,5 @@ void installEvalPackage() {
   primitiveCount = 0;
   appendPrimitive(createSymbolFromStr("+"), priAdd);
   appendPrimitive(createSymbolFromStr("define"), priDefine);
+  appendPrimitive(createSymbolFromStr("lambda"), priLambda);
 }
