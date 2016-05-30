@@ -44,3 +44,24 @@ Install `exception` first, then the `symbol` & `number`, then the `atom`, etc..
 < 5
 ```
 
+## cons, car, cdr
+
+```
+> (define cons (lambda (x y) 
+    (lambda (c)
+      (if (= c 0) x y))))
+< nil
+> (define car (lambda (x)
+    (x 0)))
+< nil
+> (define cdr (lambda (x)
+    (x 1)))
+< nil
+> (define x (cons 100 200))
+< nil
+> (cdr x)
+< 200
+> (car x)
+< 100
+```
+

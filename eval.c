@@ -304,6 +304,26 @@ Atom* priAdd(Atom* argl, Atom* env) {
   }
 }
 
+Atom* priEqual(Atom* argl, Atom* env) {
+  checkLength(argl, 2);
+  Atom* value = evalSequence(argl, env);
+  
+  Atom* a = car(value);
+  Atom* b = car(cdr(value));
+  if (number_(a) && number_(b)) {
+    if (numbereq_(a->data.number, b->data.number)) {
+      return tAtom;
+    }
+    else {
+      return fAtom;
+    }
+  }
+  else {
+    exception("primitive = (equal)", "not a number");
+    return nil;
+  }
+}
+
 Atom* priDefine(Atom* argl, Atom* env) {
   checkLength(argl, 2);
   Atom* value = eval(car(cdr(argl)), env);
@@ -326,6 +346,21 @@ Atom* priLambda(Atom* argl, Atom* env) {
   return result;
 }
 
+Atom* priIf(Atom* argl, Atom* env) {
+  checkLength(argl, 3);
+  Atom* condition = eval(car(argl), env);
+  if (eq_(condition, tAtom)) {
+    return eval(car(cdr(argl)), env);
+  }
+  else if (eq_(condition, fAtom)) {
+    return eval(car(cdr(cdr(argl))), env);
+  }
+  else {
+    exception("primitive if", "condition is neither #t nor #f");
+    return nil;
+  }
+}
+
 void printAtom(FILE* file, Atom* atom) {
   if (number_(atom)) {
     printNumber(file, atom->data.number);
@@ -345,6 +380,8 @@ void installEvalPackage() {
   
   primitiveCount = 0;
   appendPrimitive(createSymbolFromStr("+"), priAdd);
+  appendPrimitive(createSymbolFromStr("="), priEqual);
   appendPrimitive(createSymbolFromStr("define"), priDefine);
   appendPrimitive(createSymbolFromStr("lambda"), priLambda);
+  appendPrimitive(createSymbolFromStr("if"), priIf);
 }
