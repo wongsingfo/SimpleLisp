@@ -265,12 +265,13 @@ void checkLength(Atom* list, int len) {
   }
 }
 
-void appendPrimitive(Symbol symbol, Atom* (*pri)(Atom* argl, Atom* env)) {
+void appendPrimitive(char* name, Atom* (*pri)(Atom* argl, Atom* env)) {
   if (primitiveCount >= numberOfPrimitiveProc) {
     exception("??", "primitiveCount >= numberOfPrimitiveProc");
     return;
   }
   else {
+    Symbol symbol = createSymbolFromStr(name);
     primitiveProcSymbol[primitiveCount] = symbol;
     primitiveProc[primitiveCount] = pri;
     primitiveCount++;
@@ -361,7 +362,33 @@ Atom* priIf(Atom* argl, Atom* env) {
   }
 }
 
-void printAtom(FILE* file, Atom* atom, int depth);
+Atom* priCons(Atom* argl, Atom* env) {
+  checkLength(argl, 2);
+  return cons(eval(car(argl), env), 
+              eval(car(cdr(argl)), env));
+}
+
+Atom* priCar(Atom* argl, Atom* env) {
+  checkLength(argl, 1);
+  return car(eval(car(argl), env));
+}
+
+Atom* priCdr(Atom* argl, Atom* env) {
+  checkLength(argl, 1);
+  return cdr(eval(car(argl), env));
+}
+
+/* 
+  (cons-stream <a> <b>) 
+->(cons <a> (lambda () <b>))
+ */
+
+Atom* priConsStream(Atom* argl, Atom* env) {
+  checkLength(argl, 2);
+  Atom* x = eval(car(argl), env);
+  Atom* y = priLambda(cons(nil, cons(car(cdr(argl)), nil)), env);
+  return cons(x, y);
+}
 
 void printAtomList(FILE* file, Atom* atom, int depth) {
   fprintf(file, "(");
@@ -417,9 +444,13 @@ void installEvalPackage() {
   env0 = newEnvironemnt();
   
   primitiveCount = 0;
-  appendPrimitive(createSymbolFromStr("+"), priAdd);
-  appendPrimitive(createSymbolFromStr("="), priEqual);
-  appendPrimitive(createSymbolFromStr("define"), priDefine);
-  appendPrimitive(createSymbolFromStr("lambda"), priLambda);
-  appendPrimitive(createSymbolFromStr("if"), priIf);
+  appendPrimitive("+", priAdd);
+  appendPrimitive("=", priEqual);
+  appendPrimitive("define", priDefine);
+  appendPrimitive("lambda", priLambda);
+  appendPrimitive("if", priIf);
+  appendPrimitive("cons", priCons);
+  appendPrimitive("car", priCar);
+  appendPrimitive("cdr", priCdr);
+  appendPrimitive("cons-stream", priConsStream);
 }
