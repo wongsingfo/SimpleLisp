@@ -7,7 +7,7 @@ extern Atom* env0;
 Atom* eval(Atom* exp, Atom* env);
 Atom* apply(Atom* proc, Atom* argl, Atom* applyEnv);
 
-void printAtom(FILE* file, Atom* atom);
+void printAtom(FILE* file, Atom* atom, int depth);
 
 void installEvalPackage();
 

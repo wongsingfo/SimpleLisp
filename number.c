@@ -24,7 +24,7 @@ Number numberadd(Number x, Number y) {
 }
 
 void printNumber(FILE* file, Number x) {
-  fprintf(file, "%lld\n", x);
+  fprintf(file, "%lld", x);
 }
 
 void installNumberPackage() {

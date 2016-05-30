@@ -202,7 +202,7 @@ Atom* eval(Atom* exp, Atom* env) {
 }
 
 Atom* getEnvironmentFromProc(Atom* proc) {
-  return car(cdr(cdr(proc)));
+  return cdr(cdr(cdr(proc)));
 }
 
 Atom* getArgumentsFromProc(Atom* proc) {
@@ -210,7 +210,7 @@ Atom* getArgumentsFromProc(Atom* proc) {
 }
 
 Atom* getBodyFromProc(Atom* proc) {
-  return cdr(cdr(cdr(proc)));
+  return car(cdr(cdr(proc)));
 }
 
 Atom* primitiveProcApply(Symbol proc, Atom* argl, Atom* env) {
@@ -340,7 +340,7 @@ Atom* priDefine(Atom* argl, Atom* env) {
 
 Atom* priLambda(Atom* argl, Atom* env) {
   checkLength(argl, 2);
-  Atom* result = cons(env, car(cdr(argl)));
+  Atom* result = cons(car(cdr(argl)), env);
   result = cons(car(argl), result);
   result = cons(symbolLambda, result);
   return result;
@@ -361,12 +361,50 @@ Atom* priIf(Atom* argl, Atom* env) {
   }
 }
 
-void printAtom(FILE* file, Atom* atom) {
+void printAtom(FILE* file, Atom* atom, int depth);
+
+void printAtomList(FILE* file, Atom* atom, int depth) {
+  fprintf(file, "(");
+  while (1) {
+    if (null_(cdr(atom))) {
+      printAtom(file, car(atom), depth);
+      fprintf(file, ")");
+      return;
+    }
+    else if (pair_(cdr(atom))) {
+      printAtom(file, car(atom), depth);
+      fprintf(file, " ");
+      atom = cdr(atom);
+    }
+    else {
+      printAtom(file, car(atom), depth);
+      fprintf(file, " . ");
+      printAtom(file, cdr(atom), depth);
+      fprintf(file, ")");
+      return;
+    }
+  }
+}
+
+void printAtom(FILE* file, Atom* atom, int depth) {
   if (number_(atom)) {
     printNumber(file, atom->data.number);
   }
   else if (symbol_(atom)) {
-    printSymbol(file, atom->data.symbol);
+    if (null_(atom)) {
+      fprintf(file, "()");
+    }
+    else {
+      printSymbol(file, atom->data.symbol);
+    }
+  }
+  else if (pair_(atom)) {
+    if (depth == 0) {
+      fprintf(file, "(...)");
+    }
+    else {
+      printAtomList(file, atom, depth - 1);
+    }
   }
   else {
     fprintf(file, "not support now");

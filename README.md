@@ -35,7 +35,7 @@ Install `exception` first, then the `symbol` & `number`, then the `atom`, etc..
 
 ```
 > (define x 2)
-< nil
+< ()
 > ((lambda (f)
            ((lambda (x)     
                     (f 3))
@@ -44,21 +44,30 @@ Install `exception` first, then the `symbol` & `number`, then the `atom`, etc..
 < 5
 ```
 
+The representation of `lambda` and `environment` is shown below.
+
+```
+> (define f (lambda (x y) (+ x y)))
+< ()
+> f
+< (lambda_tag (x y) (+ x y) environment_tag (f lambda_tag (...) (...) environment_tag (...) (...) (...) (...) (...) (...)) (if . if) (lambda . lambda) (define . define) (= . =) (+ . +))
+```
+
 ## cons, car, cdr
 
 ```
 > (define cons (lambda (x y) 
     (lambda (c)
       (if (= c 0) x y))))
-< nil
+< ()
 > (define car (lambda (x)
     (x 0)))
-< nil
+< ()
 > (define cdr (lambda (x)
     (x 1)))
-< nil
+< ()
 > (define x (cons 100 200))
-< nil
+< ()
 > (cdr x)
 < 200
 > (car x)

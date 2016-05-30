@@ -15,7 +15,7 @@ int main() {
     fprintf(stderr, "> ");
     Atom* exp = parseFromFile(stdin);
     Atom* value = eval(exp, env0);
-    printAtom(stdout, value);
+    printAtom(stdout, value, 2);
     printf("\n");
   }
   return 0;
