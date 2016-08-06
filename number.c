@@ -19,6 +19,42 @@ int numbereq_(Number x, Number y) {
   }
 }
 
+int numberlt_(Number x, Number y) {
+  if (x < y) {
+    return 1;
+  }
+  else {
+    return 0;
+  }
+}
+
+int numbergt_(Number x, Number y) {
+  if (x > y) {
+    return 1;
+  }
+  else {
+    return 0;
+  }
+}
+
+int numberle_(Number x, Number y) {
+  if (x <= y) {
+    return 1;
+  }
+  else {
+    return 0;
+  }
+}
+
+int numberge_(Number x, Number y) {
+  if (x >= y) {
+    return 1;
+  }
+  else {
+    return 0;
+  }
+}
+
 Number numberadd(Number x, Number y) {
   return x + y;
 }

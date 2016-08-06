@@ -325,6 +325,86 @@ Atom* priEqual(Atom* argl, Atom* env) {
   }
 }
 
+Atom* priLT(Atom* argl, Atom* env) {
+  checkLength(argl, 2);
+  Atom* value = evalSequence(argl, env);
+  
+  Atom* a = car(value);
+  Atom* b = car(cdr(value));
+  if (number_(a) && number_(b)) {
+    if (numberlt_(a->data.number, b->data.number)) {
+      return tAtom;
+    }
+    else {
+      return fAtom;
+    }
+  }
+  else {
+    exception("primitive = (equal)", "not a number");
+    return nil;
+  }
+}
+
+Atom* priGT(Atom* argl, Atom* env) {
+  checkLength(argl, 2);
+  Atom* value = evalSequence(argl, env);
+  
+  Atom* a = car(value);
+  Atom* b = car(cdr(value));
+  if (number_(a) && number_(b)) {
+    if (numbergt_(a->data.number, b->data.number)) {
+      return tAtom;
+    }
+    else {
+      return fAtom;
+    }
+  }
+  else {
+    exception("primitive = (equal)", "not a number");
+    return nil;
+  }
+}
+
+Atom* priLE(Atom* argl, Atom* env) {
+  checkLength(argl, 2);
+  Atom* value = evalSequence(argl, env);
+  
+  Atom* a = car(value);
+  Atom* b = car(cdr(value));
+  if (number_(a) && number_(b)) {
+    if (numberle_(a->data.number, b->data.number)) {
+      return tAtom;
+    }
+    else {
+      return fAtom;
+    }
+  }
+  else {
+    exception("primitive = (equal)", "not a number");
+    return nil;
+  }
+}
+
+Atom* priGE(Atom* argl, Atom* env) {
+  checkLength(argl, 2);
+  Atom* value = evalSequence(argl, env);
+  
+  Atom* a = car(value);
+  Atom* b = car(cdr(value));
+  if (number_(a) && number_(b)) {
+    if (numberge_(a->data.number, b->data.number)) {
+      return tAtom;
+    }
+    else {
+      return fAtom;
+    }
+  }
+  else {
+    exception("primitive = (equal)", "not a number");
+    return nil;
+  }
+}
+
 Atom* priDefine(Atom* argl, Atom* env) {
   checkLength(argl, 2);
   Atom* value = eval(car(cdr(argl)), env);
@@ -395,6 +475,33 @@ Atom* priQuote(Atom* argl, Atom* env) {
   return car(argl);
 }
 
+Atom* priEq_(Atom* argl, Atom* env) {
+  checkLength(argl, 2);
+  Atom* value = evalSequence(argl, env);
+  
+  Atom* a = car(value);
+  Atom* b = car(cdr(value));
+  if (number_(a) && number_(b)) {
+    if (numbereq_(a->data.number, b->data.number)) {
+      return tAtom;
+    }
+    else {
+      return fAtom;
+    }
+  }
+  else if (null_(a) && null_(b)) {
+    return tAtom;
+  }
+  else {
+    if (a == b) {
+      return tAtom;
+    }
+    else {
+      return fAtom;
+    }
+  }
+}
+
 void printAtomList(FILE* file, Atom* atom, int depth) {
   fprintf(file, "(");
   while (1) {
@@ -451,6 +558,10 @@ void installEvalPackage() {
   primitiveCount = 0;
   appendPrimitive("+", priAdd);
   appendPrimitive("=", priEqual);
+  appendPrimitive("<", priLT);
+  appendPrimitive(">", priGT);
+  appendPrimitive("<=", priLE);
+  appendPrimitive(">=", priGE);
   appendPrimitive("define", priDefine);
   appendPrimitive("lambda", priLambda);
   appendPrimitive("if", priIf);
@@ -459,4 +570,5 @@ void installEvalPackage() {
   appendPrimitive("cdr", priCdr);
   appendPrimitive("cons-stream", priConsStream);
   appendPrimitive("quote", priQuote);
+  appendPrimitive("eq?", priEq_);
 }
