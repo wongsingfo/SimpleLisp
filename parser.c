@@ -7,6 +7,7 @@
 char buffer[maxBufferSize], token[maxBufferSize];
 int currentPos, bufferSize;
 FILE* inputFile;
+Atom* symbolQuote;
 
 int isSpace(char x) {
   if (x == ' ' || x == '\n' || x == '\t' || x == '\r') {
@@ -59,7 +60,7 @@ void nextToken() {
 
   int lastPos = currentPos;
   char c = buffer[currentPos];
-  if (c == '(' || c == ')') {
+  if (c == '(' || c == ')' || c == '\'') {
     currentPos++;
   }
   else {
@@ -111,6 +112,10 @@ Atom* parse() {
     exception("parse", "unexpected ')'");
     return nil;
   }
+  else if (*token == '\'') {
+    nextToken();
+    return cons(symbolQuote, cons(parse(), nil));
+  }
   else {
     if (isNumber(token)) {
       return createNumber(createNumberFromStr(token));
@@ -122,6 +127,8 @@ Atom* parse() {
 }
 
 Atom* parseFromFile(FILE* file) {
+  symbolQuote = createReservedSymbol("quote");
+
   inputFile = file;
   currentPos = 0;
   bufferSize = 0;

@@ -1,7 +1,7 @@
 #include "eval.h"
 #include "exception.h"
 
-#define numberOfPrimitiveProc 10
+#define numberOfPrimitiveProc 20
 
 Atom* env0;
 int primitiveCount;
@@ -390,6 +390,11 @@ Atom* priConsStream(Atom* argl, Atom* env) {
   return cons(x, y);
 }
 
+Atom* priQuote(Atom* argl, Atom* env) {
+  checkLength(argl, 1);
+  return car(argl);
+}
+
 void printAtomList(FILE* file, Atom* atom, int depth) {
   fprintf(file, "(");
   while (1) {
@@ -453,4 +458,5 @@ void installEvalPackage() {
   appendPrimitive("car", priCar);
   appendPrimitive("cdr", priCdr);
   appendPrimitive("cons-stream", priConsStream);
+  appendPrimitive("quote", priQuote);
 }
