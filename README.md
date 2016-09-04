@@ -50,7 +50,7 @@ The representation of `lambda` and `environment` is shown below.
 > (define f (lambda (x y) (+ x y)))
 < ()
 > f
-< (lambda_tag (x y) (+ x y) environment_tag (f lambda_tag (...) (...) environment_tag (...) (...) (...) (...) (...) (...)) (if . if) (lambda . lambda) (define . define) (= . =) (+ . +))
+< (lambda_tag (x y) (+ x y) ...env...)
 ```
 
 ## cons, car, cdr
@@ -77,34 +77,33 @@ The representation of `lambda` and `environment` is shown below.
 ## stream
 
 ```
+(define-syntax cons-stream
+  (syntax-rules ()
+    ((cons-stream a b)
+     (cons a (lambda () b))))) 
+```
+
+`cons-tream` is a primitive procedure, so the code above is not needed.
+
+```
+> (define add-streams
+  (lambda (x y)
+    (cons-stream
+      (+ (stream-car x) (stream-car y))
+      (add-streams (stream-cdr x) (stream-cdr y)))))
+< ()
 > (define stream-car (lambda (stream) (car stream)))
 < ()
 > (define stream-cdr (lambda (stream) ((cdr stream))))
 < ()
-> (define ones (cons-stream 1 ones))
+> (define fibs (cons-stream 0 (cons-stream 1 (add-streams (stream-cdr fibs) fibs))))
 < ()
-> (car ones)
-< 1
-> (car (cdr ones))
-< lambda_tag
-> (stream-car ones)
-< 1
-> (stream-car (stream-cdr ones))
-< 1
-> (define add-stream (lambda (s1 s2)
-    (cons-stream (+ (stream-car s1)
-                    (stream-car s2))
-                 (add-stream (stream-cdr s1)
-                             (stream-cdr s2)))))
+> (define stream-iter 
+  (lambda (stream i)
+    (if (= i 0) 
+        (stream-car stream)
+        (stream-iter (stream-cdr stream) (+ i -1)))))
 < ()
-> (define integers (cons-stream 1 (add-stream ones integers)))
-< ()
-> (stream-car integers)
-< 1
-> (stream-car (stream-cdr integers))
-< 2
-> (stream-car (stream-cdr (stream-cdr (stream-cdr integers)))) 
-< 4
-> (stream-cdr (stream-cdr (stream-cdr integers)))
-< (4 lambda_tag () (add-stream (...) (...)) environment_tag (s2 3 lambda_tag () (...) ...) (s1 1 lambda_tag () ones ...) (integers 1 lambda_tag () (...) ...) (add-stream lambda_tag (...) (...) ...) (ones 1 lambda_tag () ones ...) ...)
+> (stream-iter fibs 22)
+< 17711
 ```
