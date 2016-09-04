@@ -127,6 +127,9 @@ Atom* parse() {
 }
 
 Atom* parseFromFile(FILE* file) {
+  if (file == stdin) {
+    fprintf(stderr, "> ");
+  }
   symbolQuote = createReservedSymbol("quote");
 
   inputFile = file;
@@ -134,6 +137,8 @@ Atom* parseFromFile(FILE* file) {
   bufferSize = 0;
   nextToken();
   Atom* result = parse();
-  fprintf(stderr, "< "); // indicate that parsing is finished.
+  if (file == stdin) {
+    fprintf(stderr, "< "); // indicate that parsing is finished.
+  }
   return result;
 }

@@ -1,6 +1,8 @@
 #include "eval.h"
 #include "exception.h"
 
+#define returnNormally(val) popStackMessage(); return val;
+
 #define numberOfPrimitiveProc 20
 
 Atom* env0;
@@ -98,21 +100,20 @@ int environment_(Atom* proc) {
 }
 
 Atom* lookUp(Atom* symbol, Atom* env) {
+  pushStackMessage("look up a variable");
   if (environment_(env)) {
     env = cdr(env);
     while (! null_(env)) {
       Atom* pair = car(env);
       if (symboleq_(car(pair)->data.symbol, symbol->data.symbol)) {
-        return cdr(pair);
+        returnNormally(cdr(pair));
       }
       env = cdr(env);
     }
-    exception("look up", "can not find symbol");
-    return nil;
+    exception("can not find symbol");
   }
   else {
-    exception("look up", "not an environment");
-    return nil;
+    exception("not an environment");
   }
 }
 
@@ -121,32 +122,33 @@ Atom* newEnvironemnt() {
 }
 
 void appendEnvironment(Atom* env, Atom* name, Atom* value) {
+  pushStackMessage("append environment");
   if (environment_(env)) {
     Atom* pair = cons(name, value);
     Atom* data = cons(pair, cdr(env));
     env->data.child[1] = data;
+    popStackMessage();
   }
   else {
-    exception("append environment", "not an environment");
+    exception("not an environment");
   }
 }
 
 Atom* extendEnvironment(Atom* env, Atom* name, Atom* argl) {
+  pushStackMessage("extend environment");
   if (environment_(env)) {
     Atom* newEnv = newEnvironemnt();
     newEnv->data.child[1] = env->data.child[1];
     
     while (1) {
       if (null_(name) && null_(argl)) {
-        return newEnv;
+        returnNormally(newEnv)
       }
       else if (null_(name)) {
-        exception("extend environment", "too many arguments");
-        return newEnv;
+        exception("too many arguments");
       }
       else if (null_(argl)) {
-        exception("extend environment", "too few arguments");
-        return newEnv;
+        exception("too few arguments");
       }
       else {
         appendEnvironment(newEnv, car(name), car(argl));
@@ -156,8 +158,7 @@ Atom* extendEnvironment(Atom* env, Atom* name, Atom* argl) {
     }
   }
   else {
-    exception("look up", "not an environment");
-    return nil;
+    exception("not an environment");
   }
 }
 
@@ -180,24 +181,23 @@ Atom* getArgumentsFromExp(Atom* exp) {
 }
 
 Atom* eval(Atom* exp, Atom* env) {
+  pushStackMessage("eval");
   if (pair_(exp)) {
     Atom* proc = eval(getProcedureFromExp(exp), env);
     Atom* argl = getArgumentsFromExp(exp);
-    return apply(proc, argl, env);
+    returnNormally(apply(proc, argl, env));
   }
   else if (null_(exp)) {
-    exception("eval", "evaluate an empty expression");
-    return nil;
+    exception("evaluate an empty expression");
   }
   else if (symbol_(exp)) {
-    return lookUp(exp, env);
+    returnNormally(lookUp(exp, env));
   }
   else if (number_(exp)) {
-    return exp;
+    returnNormally(exp);
   }
   else {
-    exception("??eval", "unknown operation");
-    return nil;
+    exception("unknown operation");
   }
 }
 
@@ -214,17 +214,18 @@ Atom* getBodyFromProc(Atom* proc) {
 }
 
 Atom* primitiveProcApply(Symbol proc, Atom* argl, Atom* env) {
+  pushStackMessage("primitiveProcApply");
   int i;
   for (i = 0; i < primitiveCount; i++) {
     if (symboleq_(proc, primitiveProcSymbol[i])) {
-      return (*primitiveProc[i])(argl, env);
+      returnNormally((*primitiveProc[i])(argl, env));
     }
   }
-  exception("primitive apply", "proc is not primitive or compounded");
-  return nil;
+  exception("proc is not primitive or compounded");
 }
 
 Atom* apply(Atom* proc, Atom* argl, Atom* applyEnv) {
+  pushStackMessage("apply");
   if (lambda_(proc)) {
     Atom* newEnv = 
       extendEnvironment(
@@ -232,21 +233,20 @@ Atom* apply(Atom* proc, Atom* argl, Atom* applyEnv) {
         getArgumentsFromProc(proc),
         evalSequence(argl, applyEnv)
       );
-    return eval(getBodyFromProc(proc), newEnv);
+    returnNormally(eval(getBodyFromProc(proc), newEnv));
   }
   else if (symbol_(proc)) {
-    return primitiveProcApply(proc->data.symbol, argl, applyEnv);
+    returnNormally(primitiveProcApply(proc->data.symbol, argl, applyEnv));
   }
   else {
-    exception("apply", "number / string / .. etc can not be applied");
-    return nil;
+    exception("apply: number / string / .. etc can not be applied");
   }
 }
 
 void checkLength(Atom* list, int len) {
   if (null_(list)) {
     if (len != 0) {
-      exception("check list length", "list too short");
+      exception("check list length: list too short");
     }
     else {
       return;
@@ -254,7 +254,7 @@ void checkLength(Atom* list, int len) {
   }
   else if (len == 0) {
     if (! null_(list)) {
-      exception("check list length", "list too long");
+      exception("check list length: list too long");
     }
     else {
       return;
@@ -266,9 +266,9 @@ void checkLength(Atom* list, int len) {
 }
 
 void appendPrimitive(char* name, Atom* (*pri)(Atom* argl, Atom* env)) {
+  pushStackMessage("appendPrimitive");
   if (primitiveCount >= numberOfPrimitiveProc) {
-    exception("??", "primitiveCount >= numberOfPrimitiveProc");
-    return;
+    exception("primitiveCount >= numberOfPrimitiveProc");
   }
   else {
     Symbol symbol = createSymbolFromStr(name);
@@ -278,6 +278,7 @@ void appendPrimitive(char* name, Atom* (*pri)(Atom* argl, Atom* env)) {
     
     Atom* tmp = createSymbol(symbol);
     appendEnvironment(env0, tmp, tmp);
+    popStackMessage();
   }
 }
 
@@ -285,15 +286,13 @@ Atom* priAdd(Atom* argl, Atom* env) {
   Atom* value = evalSequence(argl, env);
   
   if (null_(value)) {
-    exception("primitive + (add)", "no arguments");
-    return nil;
+    exception("primitive + (add): no arguments");
   }
   else {
     Atom* i;
     for (i = value; !null_(i); i = cdr(i)) {
       if (! number_(car(i))) {
-        exception("primitive + (add)", "not a number");
-        return nil;
+        exception("primitive + (add): not a number");
       }
     }
   
@@ -320,8 +319,7 @@ Atom* priEqual(Atom* argl, Atom* env) {
     }
   }
   else {
-    exception("primitive = (equal)", "not a number");
-    return nil;
+    exception("primitive = (equal): not a number");
   }
 }
 
@@ -340,8 +338,7 @@ Atom* priLT(Atom* argl, Atom* env) {
     }
   }
   else {
-    exception("primitive = (equal)", "not a number");
-    return nil;
+    exception("primitive = (equal): not a number");
   }
 }
 
@@ -360,8 +357,7 @@ Atom* priGT(Atom* argl, Atom* env) {
     }
   }
   else {
-    exception("primitive = (equal)", "not a number");
-    return nil;
+    exception("primitive = (equal): not a number");
   }
 }
 
@@ -380,8 +376,7 @@ Atom* priLE(Atom* argl, Atom* env) {
     }
   }
   else {
-    exception("primitive = (equal)", "not a number");
-    return nil;
+    exception("primitive = (equal): not a number");
   }
 }
 
@@ -400,45 +395,45 @@ Atom* priGE(Atom* argl, Atom* env) {
     }
   }
   else {
-    exception("primitive = (equal)", "not a number");
-    return nil;
+    exception("primitive = (equal): not a number");
   }
 }
 
 Atom* priDefine(Atom* argl, Atom* env) {
+  pushStackMessage("define statement");
   checkLength(argl, 2);
   Atom* value = eval(car(cdr(argl)), env);
   
   if (symbol_(car(argl))) {
     appendEnvironment(env, car(argl), value);
-    return nil;
+    returnNormally(nil);
   }
   else {
-    exception("primitive define", "symbol expected");
-    return nil;
+    exception("primitive define: symbol expected");
   }
 }
 
 Atom* priLambda(Atom* argl, Atom* env) {
+  pushStackMessage("lambda statement");
   checkLength(argl, 2);
   Atom* result = cons(car(cdr(argl)), env);
   result = cons(car(argl), result);
   result = cons(symbolLambda, result);
-  return result;
+  returnNormally(result);
 }
 
 Atom* priIf(Atom* argl, Atom* env) {
+  pushStackMessage("if statement");
   checkLength(argl, 3);
   Atom* condition = eval(car(argl), env);
   if (eq_(condition, tAtom)) {
-    return eval(car(cdr(argl)), env);
+    returnNormally(eval(car(cdr(argl)), env));
   }
   else if (eq_(condition, fAtom)) {
-    return eval(car(cdr(cdr(argl))), env);
+    returnNormally(eval(car(cdr(cdr(argl))), env));
   }
   else {
-    exception("primitive if", "condition is neither #t nor #f");
-    return nil;
+    exception("condition is neither #t nor #f");
   }
 }
 
@@ -572,3 +567,5 @@ void installEvalPackage() {
   appendPrimitive("quote", priQuote);
   appendPrimitive("eq?", priEq_);
 }
+
+#undef returnNormally
