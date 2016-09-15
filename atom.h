@@ -3,48 +3,36 @@
 
 #include "number.h"
 #include "symbol.h"
-#include "exception.h"
 
 typedef struct Atom Atom;
 
-enum AtomTag {
-  PAIR,
-  NUMBER,
-  SYMBOL,
-  PRIMITIVE,
-  COMPOUND,
-  BOOLEAN,
+enum AtomType {
+  atomPair,
+  atomNumber,
+  atomSymbol,
 };
 
 struct Atom {
-  enum AtomTag tag;
-  int ref;  // used for gargage collection
+  enum AtomType type;
   union {
-    Atom* child[2];
+    struct Atom* child[2]; 
     Number number;
     Symbol symbol;
-    Atom* (*primitive)(Atom*);
-    struct {
-      Atom* body;
-      Atom* params;
-      Atom* env;
-    }compound;
-    int boolean;
   }data;
 };
-
-Atom* nil = NULL;
-Atom* symbol_ok;
-Atom* symbol_error;
-Atom* boolean_true;
-Atom* boolean_false;
 
 Atom* car(Atom* x);
 Atom* cdr(Atom* x);
 Atom* cons(Atom* x, Atom* y);
 
-Atom* createAtomFromSymbol(Symbol symbol);
-Atom* createAtomFromNumber(Number number);
+// treat nil, #t, #f as a symbol
+extern Atom* nil; 
+extern Atom* tAtom;
+extern Atom* fAtom;
+Atom* createReservedSymbol(char* symbol);
+
+Atom* createSymbol(Symbol symbol);
+Atom* createNumber(Number number);
 
 void installAtomPackage();
 
